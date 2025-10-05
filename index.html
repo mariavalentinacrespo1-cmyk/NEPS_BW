@@ -1,0 +1,1810 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌸 NEPS - Monitoreo Floral Satelital</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    .logo-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  background: #1a3c8a; 
+}
+
+.logo-img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.logo-img:hover {
+  transform: scale(1.02);
+}
+
+@media (max-width: 768px) {
+  .logo-container {
+    padding: 15px 0;
+  }
+  
+  .logo-img {
+    max-width: 95%;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-container {
+    padding: 10px 0;
+  }
+  
+  .logo-img {
+    max-width: 100%;
+    border-radius: 8px;
+  }
+}
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #e6f7ee 0%, #f0f9ff 100%);
+      color: #333;
+      line-height: 1.6;
+    }
+
+    header {
+      background: linear-gradient(120deg, #4CAF50, #2196F3, #064729);
+      color: white;
+      text-align: center;
+      padding: 1.5rem 1rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: "";
+      position: absolute;
+      top: -50px;
+      left: -50px;
+      width: 200px;
+      height: 200px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50%;
+    }
+
+    header::after {
+      content: "";
+      position: absolute;
+      bottom: -80px;
+      right: -60px;
+      width: 250px;
+      height: 250px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 50%;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2.2rem;
+      font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      position: relative;
+      z-index: 2;
+    }
+
+    .subtitle {
+      margin-top: 0.5rem;
+      font-size: 1.1rem;
+      opacity: 0.9;
+      font-weight: 300;
+    }
+
+    #map-container {
+      position: relative;
+      height: 50vh;
+      min-height: 350px;
+      max-height: 500px;
+      width: 100%;
+      background: #f8f9fa;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    #map {
+      height: 100%;
+      width: 100%;
+    }
+
+    .main-analysis {
+      width: 100%;
+      max-width: 1600px;
+      margin: 0 auto 25px;
+      padding: 0 20px;
+    }
+
+    .analysis-full-width {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 
+        0 10px 30px -10px rgba(0, 0, 0, 0.12),
+        0 4px 25px 0 rgba(0, 0, 0, 0.08),
+        0 8px 10px -5px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(0, 0, 0, 0.03);
+      background: linear-gradient(to bottom right, #ffffff, #fafcff);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .analysis-full-width::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #4CAF50, #2196F3, #064729);
+      opacity: 0.8;
+    }
+
+    .panels-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 25px;
+      width: 100%;
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 0 20px 30px;
+    }
+
+    .panel, .user-panel {
+      background: white;
+      padding: 28px;
+      border-radius: 20px;
+      box-shadow: 
+        0 10px 30px -10px rgba(0, 0, 0, 0.12),
+        0 4px 25px 0 rgba(0, 0, 0, 0.08),
+        0 8px 10px -5px rgba(0, 0, 0, 0.05);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border: 1px solid rgba(0, 0, 0, 0.03);
+      background: linear-gradient(to bottom right, #ffffff, #fafcff);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::before, .user-panel::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #4CAF50, #2196F3, #064729);
+      opacity: 0.8;
+    }
+
+    .panel:hover, .user-panel:hover {
+      transform: translateY(-8px);
+      box-shadow: 
+        0 18px 50px -12px rgba(0, 0, 0, 0.22),
+        0 8px 30px 0 rgba(0, 0, 0, 0.15),
+        0 12px 15px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .panel h2, .user-panel h2 {
+      color: #1B5E20;
+      margin-bottom: 22px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid #e8f5e8;
+      font-size: 1.6rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .panel h2 i, .user-panel h2 i {
+      color: #2E7D32;
+      background: rgba(76, 175, 80, 0.12);
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .info-item {
+      margin-bottom: 14px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f8f4;
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .info-item:last-child {
+      border-bottom: none;
+    }
+
+    .info-item b {
+      color: #0D47A1;
+      font-weight: 700;
+      min-width: 180px;
+      flex-shrink: 0;
+    }
+
+    .panel ul, .user-panel ul {
+      padding-left: 22px;
+      margin: 12px 0;
+      color: #444;
+    }
+
+    .panel ul li, .user-panel ul li {
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+
+    .satellite-container {
+      margin-top: 15px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .satellite-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .satellite-image:hover {
+      transform: scale(1.05);
+    }
+
+    .flower-gallery {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+
+    .flower-image {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      transition: transform 0.2s ease;
+    }
+
+    .flower-image:hover {
+      transform: scale(1.1);
+      z-index: 2;
+      position: relative;
+    }
+
+    .locate-btn {
+      background: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      font-size: 14px;
+      font-weight: 600;
+      color: #2E7D32;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+    }
+
+    .locate-btn:hover {
+      background: #f5f5f5;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    }
+
+    label { 
+      display: block; 
+      margin-top: 15px; 
+      font-weight: 600; 
+      color: #1B5E20;
+      font-size: 0.95rem;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 12px 15px;
+      margin-top: 6px;
+      border-radius: 10px;
+      border: 2px solid #e0e0e0;
+      font-size: 14px;
+      transition: border-color 0.3s ease;
+      background: #fafafa;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #4CAF50;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+    }
+
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #4CAF50, #2E7D32);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #43A047, #1B5E20);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+    }
+
+    #flower-list {
+      margin-top: 25px;
+      padding-top: 20px;
+      border-top: 2px solid #e0e0e0;
+    }
+
+    #flower-list h3 {
+      color: #2E7D32;
+      margin-bottom: 15px;
+      font-size: 1.3rem;
+    }
+
+    .flower-item {
+      background: #f8fff8;
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      border-left: 4px solid #4CAF50;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .flower-item img {
+      width: 100%;
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+
+    .loading i {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .error {
+      color: #f44336;
+      text-align: center;
+      padding: 15px;
+      background: #ffebee;
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+
+    .season-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    .spring { background: #c8e6c9; color: #2E7D32; }
+    .summer { background: #ffecb3; color: #F57F17; }
+    .autumn { background: #ffe0b2; color: #E65100; }
+    .winter { background: #bbdefb; color: #0D47A1; }
+
+    .fauna-section {
+      background: #f0f7ff;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 15px;
+      border-left: 3px solid #2196F3;
+    }
+
+    .fauna-section h4 {
+      color: #0D47A1;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .fauna-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 8px 0;
+      padding: 8px;
+      background: white;
+      border-radius: 8px;
+    }
+
+    .fauna-icon {
+      font-size: 1.2rem;
+      color: #2196F3;
+    }
+
+    .coordinates-display {
+      font-family: 'Courier New', monospace;
+      background: #2E7D32;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+
+    .image-section {
+      margin: 15px 0;
+    }
+
+    .image-section h4 {
+      color: #2E7D32;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .satellite-details {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 5px;
+      text-align: center;
+    }
+
+    /* === AJUSTES PARA MÓVIL === */
+    @media (max-width: 768px) {
+      header h1 {
+        font-size: 1.7rem;
+      }
+      
+      .subtitle {
+        font-size: 1rem;
+        padding: 0 10px;
+      }
+
+      #map-container {
+        height: 45vh;
+        min-height: 320px;
+      }
+
+      .analysis-full-width,
+      .panel,
+      .user-panel {
+        padding: 22px 18px;
+      }
+
+      /* Inputs más grandes para tacto */
+      input, textarea, select {
+        min-height: 48px;
+        font-size: 16px; /* Evita zoom en iOS */
+        padding: 12px 16px;
+      }
+
+      button {
+        min-height: 52px;
+        font-size: 17px;
+      }
+
+      .locate-btn {
+        padding: 12px 18px;
+        font-size: 15px;
+        top: 15px;
+        left: 15px;
+      }
+
+      .flower-image {
+        width: 70px;
+        height: 70px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      header h1 {
+        font-size: 1.4rem;
+      }
+
+      .subtitle {
+        font-size: 0.95rem;
+      }
+
+      #map-container {
+        height: 40vh;
+        min-height: 280px;
+      }
+
+      .analysis-full-width,
+      .panel,
+      .user-panel {
+        padding: 20px 15px;
+      }
+
+      .flower-image {
+        width: 60px;
+        height: 60px;
+      }
+
+      .locate-btn {
+        padding: 10px 16px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="logo-container">
+  <img src="neps1 (2).png" alt="NEPS - Polinizador digital 🐝 Monitoreo Floral Satelital" class="logo-img">
+</div>
+  <header>
+    <h1>🌍🌺 NEPS 🌺🌍<br> <small>Polinizador digital 🐝 Monitoreo Floral Satelital</small></h1>
+    <p class="subtitle">Descubre la flora y fauna local en tiempo real con imágenes satelitales detalladas</p>
+  </header>
+
+  <div id="map-container">
+    <button class="locate-btn" id="locate-btn">
+      <i class="fas fa-location-arrow"></i> Mi ubicación
+    </button>
+    <div id="map"></div>
+  </div>
+
+  <!-- PANEL PRINCIPAL: ANCHO COMPLETO -->
+  <div class="main-analysis">
+    <div class="panel analysis-full-width">
+      <h2><i class="fas fa-leaf"></i> Análisis Ecológico Detallado</h2>
+      <div id="info">
+        <div style="text-align: center; padding: 25px;">
+          <i class="fas fa-map-marked-alt" style="font-size: 3rem; color: #4CAF50; margin-bottom: 15px;"></i>
+          <h3 style="color: #2E7D32; margin-bottom: 12px;">Explora la biodiversidad local</h3>
+          <p>Haz clic en cualquier lugar del mapa para obtener un análisis detallado con imágenes satelitales de alta resolución y fotografías de la flora local.</p>
+          <p style="margin-top: 15px; font-size: 0.95rem; color: #666;">
+            <i class="fas fa-search-location"></i> El sistema se centrará automáticamente y mostrará detalles específicos
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANELS SECUNDARIOS: GRID RESPONSIVE -->
+  <div class="panels-container">
+    <div class="panel" id="native-flowers">
+      <h2><i class="fas fa-globe-americas"></i> 🌺 Flor nativa del país</h2>
+      <div id="native-list">Haz clic en el mapa para ver especies nativas.</div>
+    </div>
+
+    <div class="panel" id="invasive-panel">
+      <h2><i class="fas fa-exclamation-triangle"></i> 🌾 Flora invasora detectada</h2>
+      <div id="invasive-info">Haz clic en un país para ver si tiene especies invasoras.</div>
+    </div>
+
+    <div class="user-panel">
+      <h2><i class="fas fa-plus-circle"></i> 🌺 Contribuye al registro floral</h2>
+      <form id="flower-form">
+        <label for="flower-name"><i class="fas fa-tag"></i> Nombre de la flor:</label>
+        <input type="text" id="flower-name" placeholder="Ej: Rosa silvestre" required>
+
+        <label for="flower-color"><i class="fas fa-palette"></i> Color principal:</label>
+        <input type="text" id="flower-color" placeholder="Ej: Rojo intenso" required>
+
+        <label for="flower-photo"><i class="fas fa-camera"></i> Foto de la flor:</label>
+        <input type="file" id="flower-photo" accept="image/*" required>
+
+        <label for="flower-info"><i class="fas fa-lightbulb"></i> Información breve / dato curioso:</label>
+        <textarea id="flower-info" placeholder="Comparte algo interesante sobre esta flor..." required></textarea>
+
+        <label for="flower-domain"><i class="fas fa-globe-americas"></i> Dominio taxonómico:</label>
+        <input type="text" id="flower-domain" placeholder="Ej: Eukarya">
+
+        <label for="flower-class"><i class="fas fa-layer-group"></i> Clase:</label>
+        <input type="text" id="flower-class" placeholder="Ej: Magnoliopsida">
+
+        <label for="flower-temp"><i class="fas fa-thermometer-half"></i> Rango de temperatura óptima:</label>
+        <input type="text" id="flower-temp" placeholder="Ej: 15°C - 25°C">
+
+        <label for="flower-extinction"><i class="fas fa-exclamation-triangle"></i> Posibles causas de extinción:</label>
+        <textarea id="flower-extinction" placeholder="Describe las amenazas a esta especie..."></textarea>
+
+        <button type="submit">
+          <i class="fas fa-seedling"></i> Agregar flor al registro
+        </button>
+      </form>
+
+      <!-- Campo de búsqueda -->
+      <label for="busqueda-nombre" style="margin-top: 25px;"><i class="fas fa-search"></i> Buscar en el libro florístico:</label>
+      <input type="text" id="busqueda-nombre" placeholder="Ej: Rosa, Ceibo, Juan...">
+      <button type="button" onclick="buscarPublicaciones()" style="margin-top: 10px; width: auto;">
+        <i class="fas fa-search"></i> Buscar
+      </button>
+
+      <div id="publicaciones-lista" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+        <p>Las flores que agregues aparecerán aquí. Usa la búsqueda para filtrar.</p>
+      </div>
+
+      <div id="flower-list">
+        <h3><i class="fas fa-book"></i> Flores registradas por usuarios</h3>
+        <div id="flowers-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // === TU CÓDIGO JAVASCRIPT COMPLETO AQUÍ ===
+    // (Incluye todas las funciones: obtenerPais, florNativaPorPais, floraInvasoraPorPais, 
+    // biodiversityData, addAerosolMarkers, etc., exactamente como en la versión fusionada anterior)
+    
+    // Initialize map
+    const map = L.map('map').setView([20, 0], 2);
+    
+    // Add satellite imagery
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: '© Esri, Maxar, Earthstar Geographics | Datos ecológicos: NEPS'
+    }).addTo(map);
+
+    // === DATOS DE AEROSOLES (GLOBE) ===
+    const aerosolData = [
+      { lat: 45.8163, lng: 15.8974, date: "2011-03-29", aot: 0.1176, site: "Vrapce 01:ATM-01", org: "Skola Za Medicinske Sestre Vrapce", country: "Croatia" },
+      { lat: 45.8162, lng: 15.8974, date: "2011-11-04", aot: 0.0747, site: "Vrapce 02:ATM-02", org: "Skola Za Medicinske Sestre Vrapce", country: "Croatia" },
+      { lat: -33.01822, lng: -61.04175, date: "2011-11-23", aot: 0.3603, site: "EEM 241:ATM-02", org: "Escuela Primaria Particular Incorporada N°1345 Nuestra Señora del Carmen", country: "Argentina" },
+      { lat: 45.8162, lng: 15.8974, date: "2011-07-07", aot: 2.0538, site: "Vrapce 02:ATM-02", org: "Skola Za Medicinske Sestre Vrapce", country: "Croatia" },
+      { lat: 45.8162, lng: 15.8974, date: "2010-07-17", aot: 0.6756, site: "Vrapce 02:ATM-02", org: "Skola Za Medicinske Sestre Vrapce", country: "Croatia" },
+      { lat: 45.8163, lng: 15.8974, date: "2010-04-26", aot: 0.6799, site: "Vrapce 01:ATM-01", org: "Skola Za Medicinske Sestre Vrapce", country: "Croatia" },
+      { lat: 45.1942, lng: 13.1918, date: "2011-11-22", aot: 0.209, site: "ITC EINAUDI AREA RIM:ATM-01", org: "Istituto Tecnico Industriale Statale Malignani", country: "Italy" },
+      { lat: -34.6427, lng: -58.5405, date: "2010-06-24", aot: 0.1071, site: "COPERNICO:ATM-01", org: "Escuela de Ensenanza Media 7 \"Nicolas Copernico\"", country: "Argentina" },
+      { lat: 45.8162, lng: 15.8974, date: "2011-08-15", aot: 0.9933, site: "Vrapce 02:ATM-02", org: "Skola Za Medicinske Sestre Vrapce", country: "Croatia" },
+      { lat: 45.8162, lng: 15.8974, date: "2011-03-24", aot: 0.1314, site: "Vrapce 02:ATM-02", org: "Skola Za Medicinske Sestre Vrapce", country: "Croatia" },
+      { lat: 52.145, lng: 6.199, date: "2010-04-02", aot: 0.35, site: "Schoolgebouw Isendoornstraat 1:ATM-01", org: "Baudartius College", country: "Netherlands" },
+      { lat: 20.34, lng: -103.29, date: "2011-03-09", aot: 0.0358, site: "Preparatoria ITESM Campus Santa Anita:ATM-02", org: "Instituto Tecnologico de Estudios Superiores de Monterrey, ITESM", country: "Mexico" },
+      { lat: 29.40964, lng: -98.06753, date: "2011-11-17", aot: 0.0637, site: "New Braunfels:ATM-10", org: "Texas State University", country: "United States" },
+      { lat: 29.3097, lng: -98.3779, date: "2011-11-16", aot: 0.0461, site: "San Antonio:ATM-11", org: "Texas State University", country: "United States" },
+      { lat: 18.49877, lng: -67.13928, date: "2011-08-09", aot: 0.3344, site: "School Location:ATM-01", org: "Ramey School", country: "United States" },
+      { lat: 36.1972, lng: -92.2688, date: "2010-05-03", aot: 0.0474, site: "School Location (U-tube):ATM-01", org: "Unknown", country: "United States" },
+      { lat: 39.43092, lng: -80.19632, date: "2011-08-02", aot: 0.4665, site: "Front Lawn:ATM-01", org: "NASA IV&V ERC SCHOOL", country: "United States" },
+      { lat: 50.85073, lng: 5.70816, date: "2010-04-09", aot: 0.7212, site: "Sint-Maartenscollege schoolplein noord:ATM-01", org: "Sint-Maartenscollege", country: "Netherlands" }
+    ];
+
+    // === ZONAS PROPENSAS A INCENDIOS (🔥) ===
+    const fireProneAreas = [
+      { lat: -34.6, lng: -58.5, name: "Región Pampeana, Argentina", reason: "Sequías estacionales y quemas agrícolas" },
+      { lat: 39.4, lng: -122.0, name: "California, EE.UU.", reason: "Sequías extremas y vientos secos (Santa Ana)" },
+      { lat: -33.0, lng: -70.7, name: "Zona Centro-Sur, Chile", reason: "Incendios forestales recurrentes" },
+      { lat: -25.0, lng: 135.0, name: "Australia Central", reason: "Clima árido y sequías prolongadas" },
+      { lat: 5.0, lng: -60.0, name: "Amazonía (Brasil)", reason: "Deforestación y quemas ilegales" },
+      { lat: 45.8, lng: 15.9, name: "Croacia (Vrapce)", reason: "Incendios en zonas mediterráneas" },
+      { lat: 35.0, lng: 138.0, name: "Japón (zonas forestales)", reason: "Sequías y acumulación de biomasa" },
+      { lat: 18.5, lng: -67.1, name: "Puerto Rico", reason: "Sequías y eventos de polvo del Sahara" }
+    ];
+
+    // === ECOSISTEMAS EN PELIGRO (⚠️) ===
+    const endangeredEcosystems = [
+      { lat: -34.6427, lng: -58.5405, name: "Pampa Húmeda, Argentina", reason: "Pérdida de pastizales nativos" },
+      { lat: 18.49877, lng: -67.13928, name: "Bosque Seco de Puerto Rico", reason: "Especies endémicas amenazadas" },
+      { lat: 45.8162, lng: 15.8974, name: "Bosques de Croacia", reason: "Impacto de incendios y sequía" },
+      { lat: -33.01822, lng: -61.04175, name: "Espinal Santafesino, Argentina", reason: "Deforestación y agricultura intensiva" },
+      { lat: 30.4413, lng: -84.2993, name: "Florida Panhandle, EE.UU.", reason: "Pérdida de humedales y especies únicas" },
+      { lat: 39.43092, lng: -80.19632, name: "Appalachian Forest, EE.UU.", reason: "Fragmentación del hábitat" }
+    ];
+
+    // === DIBUJAR MARCADORES DE AEROSOLES ===
+    function addAerosolMarkers() {
+      aerosolData.forEach(point => {
+        if (point.aot == null) return;
+        let color = point.aot < 0.1 ? '#4CAF50' : point.aot < 0.3 ? '#FFC107' : point.aot < 0.6 ? '#FF9800' : '#F44336';
+        const marker = L.circleMarker([point.lat, point.lng], {
+          radius: 7,
+          fillColor: color,
+          color: '#000',
+          weight: 1,
+          opacity: 1,
+          fillOpacity: 0.8
+        });
+        marker.bindPopup(`<b>📍 ${point.site}</b><br><b>${point.country}</b><br><b>Organización:</b> ${point.org}<br><b>Fecha:</b> ${point.date}<br><b>AOT (505nm):</b> <span style="color:${color}; font-weight:bold;">${point.aot}</span><br><small><i>Aerosol Optical Thickness – turbidez atmosférica</i></small>`).addTo(map);
+      });
+    }
+
+    // === MARCADORES DE INCENDIOS (🔥) ===
+    function addFireProneMarkers() {
+      fireProneAreas.forEach(area => {
+        const marker = L.marker([area.lat, area.lng], {
+          icon: L.divIcon({
+            html: `<div style="font-size:24px; color:#FF5722; text-shadow: 0 0 4px rgba(0,0,0,0.5);">🔥</div>`,
+            className: '',
+            iconSize: [24, 24]
+          })
+        });
+        marker.bindPopup(`<b>🔥 ${area.name}</b><br><small>${area.reason}</small>`).addTo(map);
+      });
+    }
+
+    // === MARCADORES DE ECOSISTEMAS EN PELIGRO (⚠️) ===
+    function addEndangeredEcosystemsMarkers() {
+      endangeredEcosystems.forEach(ecosystem => {
+        const marker = L.marker([ecosystem.lat, ecosystem.lng], {
+          icon: L.divIcon({
+            html: `<div style="font-size:20px; color:#F44336; text-shadow: 0 0 4px rgba(0,0,0,0.5);">⚠️</div>`,
+            className: '',
+            iconSize: [20, 20]
+          })
+        });
+        marker.bindPopup(`<b>⚠️ ${ecosystem.name}</b><br><small>${ecosystem.reason}</small>`).addTo(map);
+      });
+    }
+
+    // Comprehensive flora and fauna database by region with flower images
+    const biodiversityData = {
+      americas: { flora: [ { name: "Girasol", scientific: "Helianthus annuus", description: "Flor nativa de América del Norte, símbolo de alegría y energía solar", image: "https://placehold.co/300x200/FFD700/FFFFFF?text=Girasol" }, { name: "Orquídea Cattleya", scientific: "Cattleya labiata", description: "Orquídea tropical de América del Sur, conocida por su belleza exótica", image: "https://placehold.co/300x200/FF69B4/FFFFFF?text=Orquídea" }, { name: "Lirio del Valle", scientific: "Convallaria majalis", description: "Flor silvestre de bosques templados, muy fragante", image: "https://placehold.co/300x200/90EE90/000000?text=Lirio" } ], fauna: [ { name: "Colibrí", icon: "hummingbird", description: "Polinizador clave para flores tubulares" }, { name: "Mariposa Monarca", icon: "butterfly", description: "Migratoria, depende de la Asclepia para su reproducción" }, { name: "Abeja Nativa", icon: "bee", description: "Especie endémica crucial para la polinización local" } ] },
+      europe: { flora: [ { name: "Rosa Silvestre", scientific: "Rosa canina", description: "Rosa nativa europea, resistente y medicinal", image: "https://placehold.co/300x200/FF0000/FFFFFF?text=Rosa" }, { name: "Lavanda", scientific: "Lavandula angustifolia", description: "Aromática, atrae a polinizadores y repele plagas", image: "https://placehold.co/300x200/9370DB/FFFFFF?text=Lavanda" }, { name: "Tulipán Silvestre", scientific: "Tulipa sylvestris", description: "Flor de pradera, precursora de los tulipanes cultivados", image: "https://placehold.co/300x200/FF4500/FFFFFF?text=Tulipán" } ], fauna: [ { name: "Abeja Europea", icon: "bee", description: "Principal polinizador de cultivos y flores silvestres" }, { name: "Escarabajo Escarabajo", icon: "beetle", description: "Importante para la descomposición y fertilidad del suelo" }, { name: "Avispa Polinizadora", icon: "wasp", description: "Controla plagas y poliniza flores específicas" } ] },
+      asia: { flora: [ { name: "Loto Sagrado", scientific: "Nelumbo nucifera", description: "Flor acuática sagrada en muchas culturas asiáticas", image: "https://placehold.co/300x200/FFB6C1/000000?text=Loto" }, { name: "Cerezo en Flor", scientific: "Prunus serrulata", description: "Símbolo de la primavera y la renovación", image: "https://placehold.co/300x200/FFC0CB/000000?text=Cerezo" }, { name: "Jazmín", scientific: "Jasminum officinale", description: "Flor aromática utilizada en perfumería y medicina", image: "https://placehold.co/300x200/FFFFE0/000000?text=Jazmín" } ], fauna: [ { name: "Mariposa Atlas", icon: "butterfly", description: "Una de las mariposas más grandes del mundo" }, { name: "Abeja Gigante", icon: "bee", description: "Especie rara con gran capacidad de polinización" }, { name: "Libélula Dragón", icon: "dragonfly", description: "Indicador de calidad del agua y control de mosquitos" } ] },
+      africa: { flora: [ { name: "Protea", scientific: "Protea cynaroides", description: "Flor distintiva del Cabo, adaptada a incendios forestales", image: "https://placehold.co/300x200/FFA500/FFFFFF?text=Protea" }, { name: "Baobab", scientific: "Adansonia digitata", description: "Árbol icónico con flores nocturnas polinizadas por murciélagos", image: "https://placehold.co/300x200/8B4513/FFFFFF?text=Baobab" }, { name: "Lirio del Nilo", scientific: "Agapanthus africanus", description: "Flor acuática resistente a sequías", image: "https://placehold.co/300x200/4169E1/FFFFFF?text=Lirio+Nilo" } ], fauna: [ { name: "Murciélago Polinizador", icon: "bat", description: "Poliniza flores nocturnas como el Baobab" }, { name: "Abeja Africana", icon: "bee", description: "Altamente adaptada a climas cálidos y áridos" }, { name: "Escarabajo Pelotero", icon: "beetle", description: "Fundamental para la salud del ecosistema" } ] },
+      oceania: { flora: [ { name: "Acacia Dorada", scientific: "Acacia pycnantha", description: "Flor nacional de Australia, muy resistente", image: "https://placehold.co/300x200/FFD700/000000?text=Acacia" }, { name: "Waratah", scientific: "Telopea speciosissima", description: "Flor emblemática de Nueva Gales del Sur", image: "https://placehold.co/300x200/DC143C/FFFFFF?text=Waratah" }, { name: "Flor de Pohutukawa", scientific: "Metrosideros excelsa", description: "Conocida como el árbol de Navidad de Nueva Zelanda", image: "https://placehold.co/300x200/FF1493/FFFFFF?text=Pohutukawa" } ], fauna: [ { name: "Ave del Paraíso", icon: "bird", description: "Poliniza flores con su largo pico curvo" }, { name: "Murciélago Frugívoro", icon: "bat", description: "Dispersor clave de semillas en bosques tropicales" }, { name: "Abeja Nativa Sin Aguijón", icon: "bee", description: "Especie única que no puede picar pero poliniza eficientemente" } ] },
+      antarctica: { flora: [ { name: "Musgo Antártico", scientific: "Bryum argenteum", description: "Una de las pocas plantas que sobreviven en la Antártida", image: "https://placehold.co/300x200/228B22/FFFFFF?text=Musgo" }, { name: "Líquen Antártico", scientific: "Usnea antarctica", description: "Simbiosis resistente a condiciones extremas", image: "https://placehold.co/300x200/6B8E23/FFFFFF?text=Líquen" }, { name: "Clavel Antártico", scientific: "Colobanthus quitensis", description: "Una de las dos únicas especies de plantas con flores en la Antártida", image: "https://placehold.co/300x200/FF6347/FFFFFF?text=Clavel" } ], fauna: [ { name: "Microartrópodos", icon: "spider", description: "Pequeños invertebrados que sobreviven en musgos" }, { name: "Nematodos", icon: "worm", description: "Gusanos microscópicos en suelos antárticos" }, { name: "Tardígrados", icon: "bug", description: "Microanimales extremadamente resistentes" } ] },
+      default: { flora: [ { name: "Flora Nativa", scientific: "Especies locales", description: "Variedad de plantas adaptadas al ecosistema regional", image: "https://placehold.co/300x200/32CD32/FFFFFF?text=Flora+Nativa" }, { name: "Hierbas Silvestres", scientific: "Diversas especies", description: "Plantas herbáceas que forman la base del ecosistema", image: "https://placehold.co/300x200/228B22/FFFFFF?text=Hierbas" }, { name: "Arbustos Autóctonos", scientific: "Especies nativas", description: "Vegetación leñosa adaptada al clima local", image: "https://placehold.co/300x200/556B2F/FFFFFF?text=Arbustos" } ], fauna: [ { name: "Insectos Polinizadores", icon: "bug", description: "Diversidad de insectos que mantienen la polinización" }, { name: "Aves Locales", icon: "bird", description: "Especies de aves que interactúan con la flora" }, { name: "Microfauna del Suelo", icon: "worm", description: "Organismos esenciales para la salud del ecosistema" } ] }
+    };
+
+    // Determine region based on coordinates
+    function getRegion(lat, lng) {
+      if (lng < -30 && lat > -60 && lat < 70) return 'americas';
+      if (lng >= -30 && lng < 60 && lat > 30) return 'europe';
+      if (lng >= 60 && lng < 150 && lat > 10) return 'asia';
+      if (lng >= -20 && lng < 50 && lat < 10) return 'africa';
+      if (lng > 110 && lat < -10) return 'oceania';
+      if (lat < -60) return 'antarctica';
+      return 'default';
+    }
+
+    // Season detection function
+    function obtenerEstacion(lat) {
+      const mes = new Date().getMonth() + 1;
+      const hemisferio = lat >= 0 ? "norte" : "sur";
+      if (hemisferio === "norte") {
+        if (mes >= 3 && mes <= 5) return { nombre: "Primavera 🌸", clase: "spring" };
+        if (mes >= 6 && mes <= 8) return { nombre: "Verano ☀", clase: "summer" };
+        if (mes >= 9 && mes <= 11) return { nombre: "Otoño 🍂", clase: "autumn" };
+        return { nombre: "Invierno ❄", clase: "winter" };
+      } else {
+        if (mes >= 3 && mes <= 5) return { nombre: "Otoño 🍂", clase: "autumn" };
+        if (mes >= 6 && mes <= 8) return { nombre: "Invierno ❄", clase: "winter" };
+        if (mes >= 9 && mes <= 11) return { nombre: "Primavera 🌸", clase: "spring" };
+        return { nombre: "Verano ☀", clase: "summer" };
+      }
+    }
+
+    // Pollinator by temperature
+    function polinizadorPorTemp(temp) {
+      if (temp < 5) return "Escasos (bajas temperaturas)";
+      if (temp < 15) return "Abejorros 🐝";
+      if (temp < 25) return "Abejas y mariposas 🦋🐝";
+      return "Abejas tropicales y colibríes 🐦";
+    }
+
+    // === NUEVAS FUNCIONES ===
+    async function obtenerPais(lat, lng) {
+      const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+      const resp = await fetch(url);
+      const data = await resp.json();
+      return data.address?.country || "País no determinado";
+    }
+
+    function florNativaPorPais(pais) {
+      const flores = {
+        "Argentina": ["Ceibo"],
+        "Bolivia": ["Cantuta", "Patujú"],
+        "Brasil": ["Ipê amarillo"],
+        "Chile": ["Copihue"],
+        "Colombia": ["Orquídea Cattleya trianae"],
+        "Costa Rica": ["Guaria morada"],
+        "Cuba": ["Mariposa blanca"],
+        "Ecuador": ["Chuquiragua"],
+        "El Salvador": ["Flor de izote"],
+        "Guatemala": ["Monja blanca"],
+        "Honduras": ["Orquídea Rhyncholaelia digbyana"],
+        "México": ["Dalia", "Cempasúchil"],
+        "Nicaragua": ["Sacuanjoche"],
+        "Panamá": ["Flor del Espíritu Santo"],
+        "Perú": ["Cantuta", "Puya raimondii"],
+        "Uruguay": ["Ceibo"],
+        "Venezuela": ["Orquídea flor de mayo"],
+        "España": ["Clavel"],
+        "Francia": ["Flor de lis (Lirio)"],
+        "Italia": ["Margarita"],
+        "Alemania": ["Aciano"],
+        "Reino Unido": ["Rosa Tudor", "Cardo", "Narciso", "Trébol"],
+        "Irlanda": ["Trébol"],
+        "Estados Unidos": ["Rosa"],
+        "Canadá": ["Arce rojo"],
+        "Japón": ["Crisantemo"],
+        "China": ["Peonía"],
+        "India": ["Loto"],
+        "Noruega": ["Margarita silvestre"],
+        "Suecia": ["Línea azul (Linnaea borealis)"],
+        "Islandia": ["Dryas octopetala"],
+        "Grecia": ["Jacinto"],
+        "Turquía": ["Tulipán"],
+        "Pakistán": ["Jazmín"],
+        "Malasia": ["Hibiscus rosa-sinensis"],
+        "Tailandia": ["Ratchaphruek (Cassia fistula)"],
+        "Vietnam": ["Loto"],
+        "Corea del Sur": ["Rosa Sharon (Hibiscus syriacus)"],
+        "Mongolia": ["Loto azul"],
+        "Rusia": ["Camomila"],
+        "Ucrania": ["Girasol"],
+        "Polonia": ["Amapola roja"],
+        "República Checa": ["Lirio de los valles"],
+        "Austria": ["Edelweiss"],
+        "Suiza": ["Edelweiss"],
+        "Países Bajos": ["Tulipán"],
+        "Bélgica": ["Campanilla"],
+        "Luxemburgo": ["Rosa"],
+        "Israel": ["Anémona roja"],
+        "Arabia Saudita": ["Rosa del desierto"],
+        "Emiratos Árabes Unidos": ["Tribulus omanense"],
+        "Singapur": ["Orquídea Vanda Miss Joaquim"],
+        "Maldivas": ["Rosa rosa"],
+        "Fiyi": ["Tagimoucia"],
+        "Papúa Nueva Guinea": ["Dendrobium"],
+        "Jamaica": ["Lignum vitae"],
+        "Bahamas": ["Yellow Elder"],
+        "Barbados": ["Pride of Barbados"],
+        "Trinidad y Tobago": ["Chaconia"],
+        "Guyana": ["Victoria amazonica"],
+        "Surinam": ["Palma moriche"],
+        "Paraguay": ["Mburucuyá (Passiflora)"],
+        "Namibia": ["Welwitschia"],
+        "Zimbabue": ["Flor de Jacarandá"],
+        "Malí": ["Baobab"],
+        "Senegal": ["Baobab"],
+        "Madagascar": ["Poinciana"],
+        "Corea del Norte": ["Magnolia"],
+        "Indonesia": ["Jazmín", "Rafflesia"],
+        "Filipinas": ["Sampaguita (Jazmín)"],
+        "Australia": ["Acacia dorada"],
+        "Nueva Zelanda": ["Kowhai"],
+        "Egipto": ["Loto azul"],
+        "Sudáfrica": ["Protea"],
+        "Etiopía": ["Cala"],
+        "Finlandia": ["Muguet"],
+        "Dinamarca": ["Trébol violeta"],
+        "Estonia": ["Aciano"],
+        "Lituania": ["Ruda"],
+        "Georgia": ["Rosa silvestre"],
+        "Armenia": ["Albaricoquero en flor"],
+        "Azerbaiyán": ["Granado"],
+        "Kazajistán": ["Tulipán rojo"],
+        "Uzbekistán": ["Tulipán"],
+        "Tayikistán": ["Lirio"],
+        "Kirguistán": ["Edelweiss"],
+        "Turkmenistán": ["Rosa del desierto"],
+        "Bhután": ["Amapola azul del Himalaya"],
+        "Nepal": ["Rododendro"],
+        "Sri Lanka": ["Nenúfar azul"],
+        "Laos": ["Dok Champa (Plumeria)"],
+        "Camboya": ["Rumduol"],
+        "Myanmar": ["Padauk"],
+        "Macao": ["Loto blanco"],
+        "Hong Kong": ["Bauhinia blakeana"],
+        "Taiwán": ["Flor de ciruelo"],
+        "Marruecos": ["Rosa"],
+        "Argelia": ["Iris"],
+        "Túnez": ["Jazmín"],
+        "Libia": ["Flor de granado"],
+        "Nigeria": ["Costus spectabilis"],
+        "Ghana": ["Hibiscus rosa-sinensis"],
+        "Kenya": ["Orquídea tropical"],
+        "Tanzania": ["Clavel africano"],
+        "Angola": ["Welwitschia"],
+        "Zambia": ["Bougainvillea"],
+        "Malawi": ["Jacarandá"],
+        "Mozambique": ["Flor de flamboyán"],
+        "Botsuana": ["Lirio del desierto"],
+        "República Democrática del Congo": ["Orquídea"],
+        "República del Congo": ["Flor de cacao"],
+        "Gabón": ["Flor de okoumé"],
+        "Camerún": ["Flor de banano"],
+        "Chad": ["Flor de acacia"],
+        "Sudán": ["Flor de hibisco"],
+        "Somalia": ["Flor de mirra"],
+        "Yemen": ["Flor de café"],
+        "Omán": ["Flor de incienso"],
+        "Qatar": ["Flor de sidra"],
+        "Kuwait": ["Flor de arak"],
+        "Bahréin": ["Flor de dátil"],
+        "Jordania": ["Anémona"],
+        "Líbano": ["Cedro en flor"],
+        "Siria": ["Flor de almendro"],
+        "Iraq": ["Flor de palmera datilera"],
+        "Letonia": ["Margarita"],
+        "Irán": ["Tulipán"],
+        "Afganistán": ["Tulipán"],
+        "Bangladés": ["Lirio blanco acuático"],
+        "Belice": ["Orquídea negra"],
+        "San Vicente y las Granadinas": ["Hibiscus rosa-sinensis"],
+        "Granada": ["Bougainvillea"],
+        "Montenegro": ["Lirio de los Balcanes"],
+        "Serbia": ["Peonía silvestre"],
+        "Bosnia y Herzegovina": ["Lirio dorado"],
+        "Croacia": ["Iris croata"],
+        "Eslovenia": ["Clavel alpino"],
+        "Albania": ["Flor de olivo"],
+        "Macedonia del Norte": ["Amapola roja"],
+        "Kosovo": ["Flor de manzano"],
+        "Estonia": ["Campanilla de los prados"],
+        "Letonia": ["Flor de lino"],
+        "Lituania": ["Flor de trébol blanco"],
+        "Moldavia": ["Flor de manzano silvestre"],
+        "Bielorrusia": ["Aciano azul"],
+        "Malta": ["Centáurea maltensis"],
+        "Chipre": ["Ciclamen chipriota"],
+        "Islas Feroe": ["Flor de pradera ártica"],
+        "Groenlandia": ["Flor de sauce enano"],
+        "Islas Åland": ["Flor de manzanilla"],
+        "Guernsey": ["Flor de narciso"],
+        "Jersey": ["Flor de lirio blanco"],
+        "Islas Caimán": ["Flor de banana silvestre"],
+        "Islas Vírgenes Británicas": ["Flor de flamboyán"],
+        "Islas Vírgenes de EE.UU.": ["Flor de tecoma"],
+        "Islas Turcas y Caicos": ["Flor de cactus"],
+        "Islas Malvinas": ["Flor de tussock"],
+        "Islas Georgias del Sur": ["Flor de pasto antártico"],
+        "Islas Pitcairn": ["Flor de hibisco salvaje"],
+        "Tokelau": ["Flor de pandanus"],
+        "Niue": ["Flor de helecho"],
+        "Islas Cook": ["Flor de tiare"],
+        "Wallis y Futuna": ["Flor de mape"],
+        "Isla de Pascua": ["Flor de toromiro"],
+        "Isla Norfolk": ["Flor de pino de Norfolk"],
+        "Islas Heard y McDonald": ["Flor de musgo antártico"],
+        "Islas Svalbard": ["Flor de saxífraga"],
+        "Islas Canarias": ["Flor de tajinaste rojo"],
+        "Islas Baleares": ["Flor de almendro"],
+        "Islas Azores": ["Flor de hortensia"],
+        "Madeira": ["Flor de ave del paraíso"],
+        "Dominica": ["Bwa Kwaib (Sabinea carinalis)"],
+        "Santa Lucía": ["Rosa Marguerite"],
+        "Antigua y Barbuda": ["Agave"],
+        "San Cristóbal y Nieves": ["Poinciana roja"],
+        "Haití": ["Hibiscus"],
+        "República Dominicana": ["Bayahibe Rose (Pereskia quisqueyana)"],
+        "Puerto Rico": ["Flor de maga"],
+        "Islas Marshall": ["Plumeria"],
+        "Micronesia": ["Flor de sakau"],
+        "Palau": ["Flor de narra"],
+        "Samoa": ["Teuila (Alpinia purpurata)"],
+        "Tonga": ["Garcinia sessilis"],
+        "Tuvalu": ["Flor de pulaka"],
+        "Vanuatu": ["Flor de namele"],
+        "Islas Salomón": ["Orquídea silvestre"],
+        "Nauru": ["Flor de tomano"],
+        "Kiribati": ["Flor de pandanus"],
+        "Timor Oriental": ["Ai-Dalan (Eugenia spp.)"],
+        "Brunéi": ["Simpor (Dillenia suffruticosa)"],
+        "Mónaco": ["Clavel blanco"],
+        "Andorra": ["Narciso de los Pirineos"],
+        "Liechtenstein": ["Genciana"],
+        "San Marino": ["Rosa blanca"],
+        "Cabo Verde": ["Flor de dragón"],
+        "Seychelles": ["Tropaeolum majus"],
+        "Comoras": ["Ylang-Ylang"],
+        "Islas Mauricio": ["Trochetia boutoniana"],
+        "Reunión": ["Begonia de Reunión"],
+        "Guinea Ecuatorial": ["Flor de cacao"],
+        "Benín": ["Flor de baobab"],
+        "Togo": ["Flor de flamboyán"],
+        "Gambia": ["Flor de mijo"],
+        "Guinea": ["Flor de café"],
+        "Burkina Faso": ["Flor de karité"],
+        "Níger": ["Flor de acacia blanca"]
+      };
+      return flores[pais] || ["🌿 Flor no determinada"];
+    }
+
+    function floraInvasoraPorPais(pais) {
+      const invasoras = {
+        "Argentina": [
+          { nombre: "Ligustrina", origen: "Asia" },
+          { nombre: "Pinus radiata", origen: "Norteamérica" }
+        ],
+        "Chile": [
+          { nombre: "Ulex europaeus", origen: "Europa" }
+        ],
+        "Brasil": [
+          { nombre: "Leucaena leucocephala", origen: "Centroamérica" }
+        ],
+        "España": [
+          { nombre: "Carpobrotus edulis", origen: "Sudáfrica" }
+        ],
+        "Estados Unidos": [
+          { nombre: "Kudzu", origen: "Japón" }
+        ],
+        "Australia": [
+          { nombre: "Lantana camara", origen: "América tropical" }
+        ],
+        "Sudáfrica": [
+          { nombre: "Acacia mearnsii", origen: "Australia" }
+        ],
+        "Inglaterra": [
+          { nombre: "Fallopia japonica (Bambú japonés)", origen: "Asia" },
+          { nombre: "Impatiens glandulifera", origen: "Himalaya" }
+        ],
+        "India": [
+          { nombre: "Parthenium hysterophorus", origen: "América Central" }
+        ],
+        "China": [
+          { nombre: "Eichhornia crassipes (Jacinto de agua)", origen: "Sudamérica" }
+        ],
+        "Japón": [
+          { nombre: "Ambrosia artemisiifolia", origen: "América del Norte" }
+        ],
+        "Canadá": [
+          { nombre: "Alliaria petiolata", origen: "Europa" }
+        ],
+        "Rusia": [
+          { nombre: "Heracleum sosnowskyi", origen: "Cáucaso" }
+        ],
+        "Noruega": [
+          { nombre: "Lupinus polyphyllus", origen: "América del Norte" }
+        ],
+        "Finlandia": [
+          { nombre: "Solidago canadensis", origen: "Canadá" }
+        ],
+        "Países Bajos": [
+          { nombre: "Rhus typhina", origen: "América del Norte" }
+        ],
+        "Italia": [
+          { nombre: "Ailanthus altissima", origen: "China" }
+        ],
+        "Grecia": [
+          { nombre: "Oxalis pes-caprae", origen: "Sudáfrica" }
+        ],
+        "Turquía": [
+          { nombre: "Robinia pseudoacacia", origen: "Estados Unidos" }
+        ],
+        "Egipto": [
+          { nombre: "Prosopis juliflora", origen: "México" }
+        ],
+        "Etiopía": [
+          { nombre: "Lantana camara", origen: "América tropical" }
+        ],
+        "Kenya": [
+          { nombre: "Chromolaena odorata", origen: "Caribe" }
+        ],
+        "Indonesia": [
+          { nombre: "Mimosa pigra", origen: "América Central" }
+        ],
+        "Filipinas": [
+          { nombre: "Leucaena leucocephala", origen: "México" }
+        ],
+        "Papúa Nueva Guinea": [
+          { nombre: "Piper aduncum", origen: "Sudamérica" }
+        ],
+        "Fiyi": [
+          { nombre: "Spartina alterniflora", origen: "Estados Unidos" }
+        ],
+        "Nueva Zelanda": [
+          { nombre: "Pinus contorta", origen: "Canadá" }
+        ],
+        "Islandia": [
+          { nombre: "Lupinus nootkatensis", origen: "Alaska" }
+        ],
+        "Perú": [
+          { nombre: "Eucalyptus globulus", origen: "Australia" }
+        ],
+        "Uruguay": [
+          { nombre: "Ligustrum lucidum", origen: "Asia" }
+        ],
+        "Paraguay": [
+          { nombre: "Melia azedarach", origen: "India" }
+        ],
+        "Bolivia": [
+          { nombre: "Pinus patula", origen: "México" }
+        ],
+        "Colombia": [
+          { nombre: "Tradescantia fluminensis", origen: "Sudamérica tropical" }
+        ],
+        "Venezuela": [
+          { nombre: "Pennisetum setaceum", origen: "África" }
+        ],
+        "Ecuador": [
+          { nombre: "Rubus niveus", origen: "Asia" }
+        ],
+        "Panamá": [
+          { nombre: "Arundo donax", origen: "Mediterráneo" }
+        ],
+        "Costa Rica": [
+          { nombre: "Solanum mauritianum", origen: "Sudáfrica" }
+        ],
+        "Nicaragua": [
+          { nombre: "Tithonia diversifolia", origen: "México" }
+        ],
+        "Guatemala": [
+          { nombre: "Senna spectabilis", origen: "Sudamérica" }
+        ],
+        "El Salvador": [
+          { nombre: "Lantana montevidensis", origen: "Uruguay" }
+        ],
+        "Honduras": [
+          { nombre: "Eichhornia crassipes", origen: "Amazonas" }
+        ],
+        "Puerto Rico": [
+          { nombre: "Schinus terebinthifolius", origen: "Brasil" }
+        ],
+        "República Dominicana": [
+          { nombre: "Albizia lebbeck", origen: "Asia tropical" }
+        ],
+        "Haití": [
+          { nombre: "Casuarina equisetifolia", origen: "Oceanía" }
+        ],
+        "Cuba": [
+          { nombre: "Delonix regia", origen: "Madagascar" }
+        ],
+        "Jamaica": [
+          { nombre: "Broussonetia papyrifera", origen: "Asia oriental" }
+        ],
+        "Trinidad y Tobago": [
+          { nombre: "Mikania micrantha", origen: "América tropical" }
+        ],
+        "Senegal": [
+          { nombre: "Azolla filiculoides", origen: "Sudamérica" }
+        ],
+        "Malí": [
+          { nombre: "Prosopis juliflora", origen: "México" }
+        ],
+        "Nigeria": [
+          { nombre: "Chromolaena odorata", origen: "Caribe" }
+        ],
+        "Ghana": [
+          { nombre: "Mimosa pigra", origen: "América Central" }
+        ],
+        "Angola": [
+          { nombre: "Lantana camara", origen: "América tropical" }
+        ],
+        "Zambia": [
+          { nombre: "Tithonia diversifolia", origen: "México" }
+        ],
+        "Malawi": [
+          { nombre: "Eichhornia crassipes", origen: "Amazonas" }
+        ],
+        "Mozambique": [
+          { nombre: "Leucaena leucocephala", origen: "Centroamérica" }
+        ],
+        "Tanzania": [
+          { nombre: "Parthenium hysterophorus", origen: "América Central" }
+        ],
+        "Uganda": [
+          { nombre: "Senna spectabilis", origen: "Sudamérica" }
+        ],
+        "Rwanda": [
+          { nombre: "Calliandra calothyrsus", origen: "México" }
+        ],
+        "Burundi": [
+          { nombre: "Casuarina equisetifolia", origen: "Oceanía" }
+        ],
+        "Madagascar": [
+          { nombre: "Delonix regia", origen: "África oriental" }
+        ],
+        "Comoras": [
+          { nombre: "Pennisetum purpureum", origen: "África continental" }
+        ],
+        "Seychelles": [
+          { nombre: "Albizia lebbeck", origen: "Asia tropical" }
+        ],
+        "Reunión": [
+          { nombre: "Rubus alceifolius", origen: "Asia" }
+        ],
+        "Barbados": [
+          { nombre: "Schinus terebinthifolius", origen: "Brasil" }
+        ],
+        "San Vicente y las Granadinas": [
+          { nombre: "Mikania micrantha", origen: "América tropical" }
+        ],
+        "Granada": [
+          { nombre: "Broussonetia papyrifera", origen: "Asia oriental" }
+        ],
+        "Antigua y Barbuda": [
+          { nombre: "Delonix regia", origen: "Madagascar" }
+        ],
+        "Dominica": [
+          { nombre: "Leucaena leucocephala", origen: "México" }
+        ],
+        "Fiyi": [
+          { nombre: "Pennisetum setaceum", origen: "África" }
+        ],
+        "Vanuatu": [
+          { nombre: "Mikania micrantha", origen: "América tropical" }
+        ],
+        "Islas Salomón": [
+          { nombre: "Piper aduncum", origen: "Sudamérica" }
+        ],
+        "Tuvalu": [
+          { nombre: "Leucaena leucocephala", origen: "México" }
+        ],
+        "Kiribati": [
+          { nombre: "Casuarina equisetifolia", origen: "Oceanía" }
+        ],
+        "Nauru": [
+          { nombre: "Lantana camara", origen: "América tropical" }
+        ],
+        "Timor Oriental": [
+          { nombre: "Chromolaena odorata", origen: "Caribe" }
+        ],
+        "Brunéi": [
+          { nombre: "Mimosa pigra", origen: "América Central" }
+        ],
+        "Qatar": [
+          { nombre: "Prosopis juliflora", origen: "México" }
+        ],
+        "Omán": [
+          { nombre: "Parkinsonia aculeata", origen: "América" }
+        ],
+        "Emiratos Árabes Unidos": [
+          { nombre: "Ricinus communis", origen: "África tropical" }
+        ],
+        "Arabia Saudita": [
+          { nombre: "Calotropis procera", origen: "Asia tropical" }
+        ],
+        "Jordania": [
+          { nombre: "Ailanthus altissima", origen: "China" }
+        ],
+        "Líbano": [
+          { nombre: "Oxalis pes-caprae", origen: "Sudáfrica" }
+        ],
+        "Siria": [
+          { nombre: "Robinia pseudoacacia", origen: "Estados Unidos" }
+        ],
+        "Iraq": [
+          { nombre: "Solanum elaeagnifolium", origen: "América" }
+        ],
+        "Afganistán": [
+          { nombre: "Parthenium hysterophorus", origen: "América Central" }
+        ],
+        "Tayikistán": [
+          { nombre: "Ambrosia artemisiifolia", origen: "América del Norte" }
+        ],
+        "Uzbekistán": [
+          { nombre: "Xanthium strumarium", origen: "América" }
+        ],
+        "Turkmenistán": [
+          { nombre: "Chenopodium album", origen: "Europa" }
+        ],
+        "Kirguistán": [
+          { nombre: "Datura stramonium", origen: "México" }
+        ],
+        "Kazajistán": [
+          { nombre: "Erigeron annuus", origen: "América del Norte" }
+        ],
+        "Mónaco": [
+          { nombre: "Carpobrotus edulis", origen: "Sudáfrica" }
+        ],
+        "Andorra": [
+          { nombre: "Solidago canadensis", origen: "Canadá" }
+        ],
+        "Liechtenstein": [
+          { nombre: "Impatiens glandulifera", origen: "Himalaya" }
+        ],
+        "San Marino": [
+          { nombre: "Ailanthus altissima", origen: "China" }
+        ],
+        "Islas Canarias": [
+          { nombre: "Opuntia ficus-indica", origen: "México" }
+        ],
+        "Islas Baleares": [
+          { nombre: "Agave americana", origen: "América Central" }
+        ],
+        "Madeira": [
+          { nombre: "Oxalis pes-caprae", origen: "Sudáfrica" }
+        ],
+        "Islas Azores": [
+          { nombre: "Hedychium gardnerianum", origen: "Himalaya" }
+        ],
+        "Isla de Pascua": [
+          { nombre: "Schinus terebinthifolius", origen: "Brasil" }
+        ],
+        "Islas Pitcairn": [
+          { nombre: "Lantana camara", origen: "América tropical" }
+        ],
+        "Tokelau": [
+          { nombre: "Leucaena leucocephala", origen: "México" }
+        ],
+        "Niue": [
+          { nombre: "Casuarina equisetifolia", origen: "Oceanía" }
+        ],
+        "Islas Cook": [
+          { nombre: "Mimosa diplotricha", origen: "América Central" }
+        ],
+        "Wallis y Futuna": [
+          { nombre: "Merremia peltata", origen: "Asia tropical" }
+        ],
+        "Isla Norfolk": [
+          { nombre: "Pinus radiata", origen: "California" }
+        ],
+        "Islas Georgias del Sur": [
+          { nombre: "Poa annua", origen: "Europa" }
+        ],
+        "Islas Svalbard": [
+          { nombre: "Taraxacum officinale", origen: "Europa" }
+        ],
+        "Groenlandia": [
+          { nombre: "Cerastium fontanum", origen: "Europa" }
+        ],
+        "Islas Feroe": [
+          { nombre: "Ranunculus repens", origen: "Eurasia" }
+        ],
+        "Guernsey": [
+          { nombre: "Carpobrotus edulis", origen: "Sudáfrica" }
+        ],
+        "Jersey": [
+          { nombre: "Fallopia japonica", origen: "Asia" }
+        ],
+        "Islas Vírgenes Británicas": [
+          { nombre: "Albizia lebbeck", origen: "Asia tropical" }
+        ],
+        "Islas Vírgenes de EE.UU.": [
+          { nombre: "Delonix regia", origen: "Madagascar" }
+        ],
+        "Islas Turcas y Caicos": [
+          { nombre: "Schinus molle", origen: "Perú" }
+        ],
+        "Islas Malvinas": [
+          { nombre: "Poa pratensis", origen: "Europa" }
+        ],
+        "Islas Bermudas": [
+          { nombre: "Casuarina equisetifolia", origen: "Oceanía" }
+        ],
+        "Gibraltar": [
+          { nombre: "Carpobrotus edulis", origen: "Sudáfrica" }
+        ],
+        "Islas Sandwich del Sur": [
+          { nombre: "Cerastium fontanum", origen: "Europa" }
+        ],
+        "Islas Galápagos": [
+          { nombre: "Rubus niveus", origen: "Asia" }
+        ],
+        "Islas Marianas del Norte": [
+          { nombre: "Leucaena leucocephala", origen: "México" }
+        ],
+        "Guam": [
+          { nombre: "Mikania micrantha", origen: "América tropical" }
+        ],
+        "Islas Samoa Americanas": [
+          { nombre: "Merremia peltata", origen: "Asia tropical" }
+        ],
+        "Islas Wake": [
+          { nombre: "Casuarina equisetifolia", origen: "Oceanía" }
+        ],
+        "Islas Midway": [
+          { nombre: "Lantana camara", origen: "América tropical" }
+        ],
+        "Islas Palmyra": [
+          { nombre: "Passiflora suberosa", origen: "América" }
+        ],
+        "Islas Cocos (Keeling)": [
+          { nombre: "Mimosa diplotricha", origen: "América Central" }
+        ],
+        "Islas Christmas": [
+          { nombre: "Chromolaena odorata", origen: "Caribe" }
+        ],
+        "Islas Chagos": [
+          { nombre: "Leucaena leucocephala", origen: "México" }
+        ],
+        "Islas Ascensión": [
+          { nombre: "Prosopis juliflora", origen: "México" }
+        ],
+        "Islas Tristán da Cunha": [
+          { nombre: "Poa annua", origen: "Europa" }
+        ],
+        "Islas Kerguelen": [
+          { nombre: "Taraxacum officinale", origen: "Europa" }
+        ],
+        "Islas Crozet": [
+          { nombre: "Ranunculus repens", origen: "Eurasia" }
+        ],
+        "Islas Macquarie": [
+          { nombre: "Cerastium fontanum", origen: "Europa" }
+        ],
+        "Islas Auckland": [
+          { nombre: "Poa pratensis", origen: "Europa" }
+        ]
+      };
+      return invasoras[pais] || [];
+    }
+
+    // Libro florístico
+    const publicaciones = [];
+
+    function buscarPublicaciones() {
+      const query = document.getElementById("busqueda-nombre").value.toLowerCase().trim();
+      const resultados = publicaciones.filter(f =>
+        f.nombre.toLowerCase().includes(query) || f.info.toLowerCase().includes(query)
+      );
+
+      const contenedor = document.getElementById("publicaciones-lista");
+      if (resultados.length === 0) {
+        contenedor.innerHTML = "<p>No se encontraron publicaciones.</p>";
+      } else {
+        contenedor.innerHTML = resultados.map(f => `
+          <div class="flower-item">
+            <h4>${f.nombre} <span style="color: #666; font-size: 0.9em;">(${f.color})</span></h4>
+            <img src="${f.imagen}" alt="${f.nombre}" style="width:100%; max-height:200px; object-fit:cover; border-radius:8px; margin:10px 0;">
+            <p><i class="fas fa-lightbulb"></i> ${f.info}</p>
+            ${f.dominio ? `<p><b>Dominio:</b> ${f.dominio}</p>` : ''}
+            ${f.clase ? `<p><b>Clase:</b> ${f.clase}</p>` : ''}
+            ${f.temp ? `<p><b>Rango térmico:</b> ${f.temp}</p>` : ''}
+            ${f.extincion ? `<p><b>Causas de extinción:</b> ${f.extincion}</p>` : ''}
+          </div>
+        `).join("");
+      }
+    }
+
+    let marcador;
+
+    // === AGREGAR TODOS LOS MARCADORES ===
+    addAerosolMarkers();
+    addFireProneMarkers();
+    addEndangeredEcosystemsMarkers();
+
+    // Map click handler with auto-zoom and detailed analysis
+    map.on('click', async (e) => {
+      const { lat, lng } = e.latlng;
+      const estacion = obtenerEstacion(lat);
+      const region = getRegion(lat, lng);
+      const regionData = biodiversityData[region];
+
+      map.setView([lat, lng], 12, { animate: true, duration: 1.0 });
+
+      document.getElementById("info").innerHTML = `
+        <div class="loading">
+          <i class="fas fa-spinner"></i> Analizando biodiversidad local y generando imágenes...
+        </div>
+      `;
+
+      try {
+        const climaURL = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true`;
+        const climaResp = await fetch(climaURL);
+        if (!climaResp.ok) throw new Error('Error en la API meteorológica');
+        const climaData = await climaResp.json();
+        
+        if (!climaData.current_weather) {
+          throw new Error('No se pudieron obtener datos meteorológicos');
+        }
+        
+        const temp = climaData.current_weather.temperature;
+        const polinizador = polinizadorPorTemp(temp);
+
+        const fecha = new Date().toISOString().split("T")[0];
+        const zoom = 9;
+        const x = Math.floor((lng + 180) / 360 * Math.pow(2, zoom));
+        const y = Math.floor(
+          (1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom)
+        );
+        const nasaURL = `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/${fecha}/GoogleMapsCompatible_Level9/${zoom}/${y}/${x}.jpg`;
+
+        const satelliteHTML = `
+          <div class="image-section">
+            <h4><i class="fas fa-satellite"></i> Imagen Satelital Detallada (NASA)</h4>
+            <div class="satellite-container">
+              <img class="satellite-image" src="${nasaURL}" alt="Vista satelital detallada de la NASA" onerror="this.src='https://placehold.co/600x300/e6f7ee/2E7D32?text=Imagen+Satelital+No+Disponible'">
+            </div>
+            <div class="satellite-details">
+              Resolución: Nivel ${zoom} | Fecha: ${fecha} | Coordenadas: ${lat.toFixed(4)}, ${lng.toFixed(4)}
+            </div>
+          </div>
+        `;
+
+        let flowerGalleryHTML = '<div class="image-section"><h4><i class="fas fa-flower"></i> Flora Representativa de la Región</h4><div class="flower-gallery">';
+        regionData.flora.forEach(flor => {
+          flowerGalleryHTML += `<img class="flower-image" src="${flor.image}" alt="${flor.name}" title="${flor.name} (${flor.scientific})">`;
+        });
+        flowerGalleryHTML += '</div></div>';
+
+        let floraHTML = '<div class="fauna-section"><h4><i class="fas fa-seedling"></i> Flora Local Detectada</h4>';
+        regionData.flora.forEach(flor => {
+          floraHTML += `
+            <div class="fauna-item">
+              <div class="fauna-icon"><i class="fas fa-leaf"></i></div>
+              <div>
+                <strong>${flor.name}</strong> (${flor.scientific})
+                <div style="font-size: 0.85rem; color: #666; margin-top: 3px;">${flor.description}</div>
+              </div>
+            </div>
+          `;
+        });
+        floraHTML += '</div>';
+
+        let faunaHTML = '<div class="fauna-section"><h4><i class="fas fa-paw"></i> Fauna Asociada</h4>';
+        regionData.fauna.forEach(animal => {
+          const iconMap = {
+            'hummingbird': 'fa-dove',
+            'butterfly': 'fa-butterfly',
+            'bee': 'fa-bug',
+            'wasp': 'fa-spider',
+            'beetle': 'fa-spider',
+            'bat': 'fa-bat',
+            'dragonfly': 'fa-dragon',
+            'bird': 'fa-crow',
+            'worm': 'fa-worm',
+            'bug': 'fa-bug',
+            'spider': 'fa-spider'
+          };
+          const iconClass = iconMap[animal.icon] || 'fa-paw';
+          
+          faunaHTML += `
+            <div class="fauna-item">
+              <div class="fauna-icon"><i class="fas ${iconClass}"></i></div>
+              <div>
+                <strong>${animal.name}</strong>
+                <div style="font-size: 0.85rem; color: #666; margin-top: 3px;">${animal.description}</div>
+              </div>
+            </div>
+          `;
+        });
+        faunaHTML += '</div>';
+
+        // Buscar aerosoles cercanos
+        const nearbyAerosols = aerosolData.filter(p => 
+          p.aot != null &&
+          Math.abs(p.lat - lat) < 0.3 && 
+          Math.abs(p.lng - lng) < 0.3
+        );
+
+        let aerosolSection = '';
+        if (nearbyAerosols.length > 0) {
+          aerosolSection = `
+            <div class="fauna-section">
+              <h4><i class="fas fa-smog"></i> Mediciones de Aerosoles Cercanas</h4>
+              ${nearbyAerosols.map(a => {
+                let aotColor = a.aot < 0.1 ? '#4CAF50' : 
+                               a.aot < 0.3 ? '#FFC107' : 
+                               a.aot < 0.6 ? '#FF9800' : '#F44336';
+                return `
+                  <div class="fauna-item">
+                    <div class="fauna-icon"><i class="fas fa-wind"></i></div>
+                    <div>
+                      <strong>${a.site}</strong> (${a.date})<br>
+                      <b>AOT:</b> <span style="color:${aotColor}; font-weight:bold;">${a.aot}</span> • ${a.country}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `;
+        }
+
+        document.getElementById("info").innerHTML = `
+          <div class="info-item">
+            <b>📍 Coordenadas:</b> 
+            <span class="coordinates-display">${lat.toFixed(4)}, ${lng.toFixed(4)}</span>
+          </div>
+          <div class="info-item"><b>🌍 Región Ecológica:</b> ${region.charAt(0).toUpperCase() + region.slice(1)}</div>
+          <div class="info-item"><b>🌸 Estación:</b> ${estacion.nombre} <span class="season-badge ${estacion.clase}">${estacion.clase}</span></div>
+          <div class="info-item"><b>🌡 Temperatura actual:</b> ${temp} °C</div>
+          <div class="info-item"><b>🐝 Polinizadores activos:</b> ${polinizador}</div>
+          
+          ${satelliteHTML}
+          ${flowerGalleryHTML}
+          ${floraHTML}
+          ${faunaHTML}
+          ${aerosolSection}
+        `;
+
+        // === NUEVO: País, flora nativa e invasora ===
+        try {
+          const pais = await obtenerPais(lat, lng);
+          
+          // Flor nativa
+          const floresNativas = florNativaPorPais(pais);
+          document.getElementById("native-list").innerHTML = `
+            <div class="info-item"><b>🌍 País:</b> ${pais}</div>
+            <div class="info-item"><b>🌺 Flores nativas:</b></div>
+            <ul>
+              ${floresNativas.map(f => `<li>${f}</li>`).join("")}
+            </ul>
+          `;
+
+          // Flora invasora
+          const invasoras = floraInvasoraPorPais(pais);
+          if (invasoras.length > 0) {
+            document.getElementById("invasive-info").innerHTML = `
+              <div class="info-item"><b>🌍 País:</b> ${pais}</div>
+              <div class="info-item"><b>⚠️ Especies invasoras:</b></div>
+              <ul>
+                ${invasoras.map(i => `<li><b>${i.nombre}</b> (origen: ${i.origen})</li>`).join("")}
+              </ul>
+            `;
+          } else {
+            document.getElementById("invasive-info").innerHTML = `
+              <div class="info-item"><b>🌍 País:</b> ${pais}</div>
+              <p style="margin-top: 10px; color: #2E7D32;"><i class="fas fa-check-circle"></i> No se registran especies invasoras conocidas.</p>
+            `;
+          }
+        } catch (err) {
+          console.warn("No se pudo obtener el país:", err);
+          document.getElementById("native-list").innerHTML = "<p>🌍 País: No disponible</p>";
+          document.getElementById("invasive-info").innerHTML = "<p>🌾 Datos de flora invasora no disponibles</p>";
+        }
+
+        if (marcador) map.removeLayer(marcador);
+        marcador = L.marker([lat, lng]).addTo(map)
+          .bindPopup(`
+            <div style="text-align: center; min-width: 220px;">
+              <b>📍 ${lat.toFixed(2)}, ${lng.toFixed(2)}</b><br>
+              <b>🌡 ${temp}°C</b><br>
+              <b>${estacion.nombre}</b><br>
+              <small>${region.charAt(0).toUpperCase() + region.slice(1)}</small>
+            </div>
+          `)
+          .openPopup();
+
+      } catch (error) {
+        document.getElementById("info").innerHTML = `
+          <div class="error">
+            <i class="fas fa-exclamation-triangle"></i> Error al obtener datos: ${error.message}
+          </div>
+          <p style="margin-top: 15px;"><b>Coordenadas:</b> <span class="coordinates-display">${lat.toFixed(4)}, ${lng.toFixed(4)}</span></p>
+          <p><b>Región:</b> ${region.charAt(0).toUpperCase() + region.slice(1)}</p>
+          <p><b>Estación:</b> ${estacion.nombre}</p>
+          
+          <div class="image-section">
+            <h4><i class="fas fa-satellite"></i> Imagen Satelital</h4>
+            <div class="satellite-container">
+              <img class="satellite-image" src="https://placehold.co/600x300/e6f7ee/2E7D32?text=Vista+Satelital+Estimada" alt="Vista satelital estimada">
+            </div>
+          </div>
+          
+          <div class="image-section">
+            <h4><i class="fas fa-flower"></i> Flora Representativa</h4>
+            <div class="flower-gallery">
+              ${biodiversityData[region].flora.map(flor => 
+                `<img class="flower-image" src="${flor.image}" alt="${flor.name}">`
+              ).join('')}
+            </div>
+          </div>
+        `;
+
+        // Mostrar país en error
+        try {
+          const pais = await obtenerPais(lat, lng);
+          document.getElementById("native-list").innerHTML = `<p>🌍 País: ${pais}</p>`;
+          document.getElementById("invasive-info").innerHTML = `<p>🌾 País detectado, pero sin datos ecológicos.</p>`;
+        } catch (e) {
+          document.getElementById("native-list").innerHTML = "<p>🌍 País: No disponible</p>";
+          document.getElementById("invasive-info").innerHTML = "<p>🌾 Sin datos de país.</p>";
+        }
+      }
+    });
+
+    // Current location button
+    document.getElementById('locate-btn').addEventListener('click', () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            map.setView([latitude, longitude], 12, {
+              animate: true,
+              duration: 1.0
+            });
+            
+            if (marcador) map.removeLayer(marcador);
+            marcador = L.marker([latitude, longitude]).addTo(map)
+              .bindPopup('Tu ubicación actual')
+              .openPopup();
+          },
+          (error) => {
+            alert('No se pudo obtener tu ubicación: ' + error.message);
+          }
+        );
+      } else {
+        alert('Tu navegador no soporta geolocalización');
+      }
+    });
+
+    // Flower form submission
+    document.getElementById('flower-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const name = document.getElementById('flower-name').value;
+      const color = document.getElementById('flower-color').value;
+      const info = document.getElementById('flower-info').value;
+      const domain = document.getElementById('flower-domain').value;
+      const clase = document.getElementById('flower-class').value;
+      const temp = document.getElementById('flower-temp').value;
+      const extinction = document.getElementById('flower-extinction').value;
+      const photo = document.getElementById('flower-photo').files[0];
+      
+      if (!photo) {
+        alert('Por favor selecciona una foto');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const flor = {
+          nombre: name,
+          color: color,
+          info: info,
+          dominio: domain,
+          clase: clase,
+          temp: temp,
+          extincion: extinction,
+          imagen: e.target.result
+        };
+        publicaciones.push(flor);
+
+        const flowerContainer = document.getElementById('flowers-container');
+        const flowerItem = document.createElement('div');
+        flowerItem.className = 'flower-item';
+        flowerItem.innerHTML = `
+          <h4>${flor.nombre} <span style="color: #666; font-size: 0.9em;">(${flor.color})</span></h4>
+          <img src="${flor.imagen}" alt="${flor.nombre}">
+          <p><i class="fas fa-lightbulb"></i> ${flor.info}</p>
+          ${flor.dominio ? `<p><b>Dominio:</b> ${flor.dominio}</p>` : ''}
+          ${flor.clase ? `<p><b>Clase:</b> ${flor.clase}</p>` : ''}
+          ${flor.temp ? `<p><b>Rango térmico:</b> ${flor.temp}</p>` : ''}
+          ${flor.extincion ? `<p><b>Causas de extinción:</b> ${flor.extincion}</p>` : ''}
+        `;
+        
+        flowerContainer.insertBefore(flowerItem, flowerContainer.firstChild);
+        
+        const successMsg = document.createElement('div');
+        successMsg.style.cssText = 'background: #e8f5e8; color: #2E7D32; padding: 10px; border-radius: 8px; margin: 10px 0; text-align: center; font-weight: 600;';
+        successMsg.textContent = '¡Flor agregada exitosamente al libro florístico!';
+        flowerContainer.insertBefore(successMsg, flowerItem);
+        
+        setTimeout(() => {
+          if (successMsg.parentNode) {
+            successMsg.parentNode.removeChild(successMsg);
+          }
+        }, 3000);
+      };
+      
+      reader.readAsDataURL(photo);
+      this.reset();
+    });
+  </script>
+</body>
+</html>
